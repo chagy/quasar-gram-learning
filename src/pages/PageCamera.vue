@@ -45,11 +45,13 @@
       <div class="row justify-center q-ma-md">
         <q-input 
           v-model="post.location" 
+          :loading="locationLoading"
           label="Location" 
           class="col col-sm-6" 
           dense>
           <template v-slot:append>
             <q-btn 
+              v-if="!locationLoading && locationSupported"
               @click="getLocation"
               round 
               dense 
@@ -87,6 +89,14 @@ export default {
       imageCaptured: false,
       imageUpload: [],
       hasCameraSupport: true,
+      locationLoading: false,
+    }
+  },
+  computed:{
+    locationSupported(){
+      if('geolocation' in navigator) return true 
+
+      return false
     }
   },
   methods: {
@@ -162,11 +172,34 @@ export default {
 
     },
     getLocation(){
+      this.locationLoading = true
       navigator.geolocation.getCurrentPosition(position => {
-
+        this.getCityAndCountry(position)
       },err => {
-        console.log('err: ',err)
+        this.locationError()
       },{ timeout: 7000 })
+    },
+    getCityAndCountry(position){
+      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1`
+      this.$axios.get(apiUrl).then(result => {
+        this.locationSuccess(result)
+      }).catch(err => {
+        this.locationError()
+      })
+    },
+    locationSuccess(result){
+      this.post.location = result.data.city
+      if(result.data.country){
+        this.post.location += `, ${result.data.country}`
+      }
+      this.locationLoading = false
+    },
+    locationError(){
+      this.$q.dialog({
+        title: 'Error',
+        message: 'Could not find your location.'
+      })
+      this.locationLoading = false
     }
   },
   mounted(){
