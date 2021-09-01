@@ -38,6 +38,9 @@ module.exports = function(/* ctx */) {
 
     // Full list of options: https://v1.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-build
     build: {
+      env: {
+        API: "http://localhost:3000"
+      },
       vueRouterMode: "hash", // available values: 'hash', 'history'
 
       // transpile: false,
@@ -89,7 +92,7 @@ module.exports = function(/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog"]
+      plugins: ["Dialog", "Notify", "Loading"]
     },
 
     // animations: 'all', // --- includes all animations

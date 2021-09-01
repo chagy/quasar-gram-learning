@@ -18,7 +18,8 @@
     <div class="text-center q-pa-md">
       <q-btn 
         v-if="hasCameraSupport"
-        @click="captureImage"
+        @click="captureImage" 
+        :disable="imageCaptured"
         color="grey-10" 
         icon="eva-camera"
         size="lg" 
@@ -62,6 +63,8 @@
       </div>
       <div class="row justify-center q-mt-lg">
         <q-btn 
+          @click="addPost" 
+          :disable="!post.caption || !post.photo"
           color="primary" 
           label="Post Image" 
           rounded 
@@ -200,6 +203,41 @@ export default {
         message: 'Could not find your location.'
       })
       this.locationLoading = false
+    },
+    addPost(){
+      this.$q.loading.show();
+
+      let formData = new FormData()
+      formData.append('id', this.post.id);
+      formData.append('caption', this.post.caption);
+      formData.append('location', this.post.location);
+      formData.append('date', this.post.date);
+      formData.append('file', this.post.photo, this.post.id+'.png');
+
+      this
+        .$axios
+        .post(`${process.env.API}/createPost`,formData)
+        .then(response => {
+          console.log(response);
+          this.$router.push('/')
+          this.$q.notify({
+            message: 'Post created!',
+            actions: [
+              {
+                label: 'Dismiss',
+                color: 'white'
+              }
+            ]
+          })
+          this.$q.loading.hide();
+        })
+        .catch(err => {
+          this.$q.dialog({
+            title: 'Error',
+            message: 'Sorry,could not create post!'
+          })
+          this.$q.loading.hide();
+        })
     }
   },
   mounted(){
