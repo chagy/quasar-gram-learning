@@ -29,10 +29,35 @@
     </q-header>
 
     <q-footer 
-    class="bg-white small-screen-only" 
+    class="bg-white" 
     bordered>
-      <q-tabs class="text-grey-10" active-color="primary" indicator-color="transparent">
-        <q-route-tab to="/" icon="eva-home-outline" />
+      <transition 
+        appear 
+        enter-active-class="animated fadeIn" 
+        leave-active-class="animated fadeOut">
+        <div class="banner-container bg-primary" v-if="showAppInstallBanner">
+          <div class="constrain">
+            <q-banner inline-actions class="bg-primary text-while" dense>
+              <template v-slot:avatar>
+
+                <q-avatar 
+                  icon="eva-camera-outline" 
+                  text-color="grey-10" 
+                  color="white" 
+                  font-size="22px"/>
+              </template>
+              <b>Install Quasargram?</b>
+              <template v-slot:action>
+                <q-btn flat class="q-px-sm" label="Yes" dense @click="installApp"/>
+                <q-btn flat class="q-px-sm" label="Later" dense/>
+                <q-btn flat class="q-px-sm" label="Never" dense @click="neverShowAppInstallBanner"/>
+              </template>
+            </q-banner>
+          </div>
+        </div>
+      </transition> 
+      <q-tabs class="text-grey-10 small-screen-only" active-color="primary" indicator-color="transparent">
+        <q-route-tab to="/" icon="eva-home-outline" @click="showAppInstallBanner=false"/>
         <q-route-tab to="/camera" icon="eva-camera-outline" />
       </q-tabs>
     </q-footer>
@@ -44,13 +69,49 @@
 </template>
 
 <script>
-
+let deferredPrompt;
 
 export default {
   name: 'MainLayout',
   data () {
     return {
+      showAppInstallBanner: false
     }
+  },
+  methods:{
+    installApp(){
+      this.showAppInstallBanner = false;
+
+      deferredPrompt.prompt();
+
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if(choiceResult.outcome === 'accepted'){
+          this.neverShowAppInstallBanner();
+        }else{
+
+        }
+      })
+    },
+    neverShowAppInstallBanner(){
+      this.showAppInstallBanner = false;
+      this.$q.localStorage.set('neverShowAppInstallBanner',true);
+    }
+  },
+  mounted(){
+    let neverShowAppInstallBanner = this.$q.localStorage.getItem('neverShowAppInstallBanner')
+
+    if(!neverShowAppInstallBanner)
+    {
+      window.addEventListener('beforeinstallprompt',(e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        setTimeout(() => {
+          this.showAppInstallBanner = true;
+        },3000)
+        
+      })
+    }
+    
   }
 }
 </script>

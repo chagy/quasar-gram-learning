@@ -92,12 +92,12 @@ module.exports = function(/* ctx */) {
       // directives: [],
 
       // Quasar plugins
-      plugins: ["Dialog", "Notify", "Loading"]
+      plugins: ["Dialog", "Notify", "Loading", "LocalStorage"]
     },
 
     // animations: 'all', // --- includes all animations
     // https://v1.quasar.dev/options/animations
-    animations: [],
+    animations: ["fadeIn", "fadeOut"],
 
     // https://v1.quasar.dev/quasar-cli/developing-ssr/configuring-ssr
     ssr: {
@@ -106,7 +106,7 @@ module.exports = function(/* ctx */) {
 
     // https://v1.quasar.dev/quasar-cli/developing-pwa/configuring-pwa
     pwa: {
-      workboxPluginMode: "GenerateSW", // 'GenerateSW' or 'InjectManifest'
+      workboxPluginMode: "InjectManifest", // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
       manifest: {
         name: `Quasagram - Share Your Exp`,
