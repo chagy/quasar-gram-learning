@@ -87,3 +87,18 @@ if (backgroundSyncSupported) {
     // isn't a request that should use background sync.
   });
 }
+
+self.addEventListener("notificationclick", event => {
+  let notification = event.notification;
+  let action = event.action;
+
+  if (action == "hello") {
+    console.log("Hello button was clicked");
+  } else if (action == "goodbye") {
+    console.log("Goodbye button was clicked");
+  } else {
+    console.log("Main button was clicked");
+  }
+
+  notification.close();
+});

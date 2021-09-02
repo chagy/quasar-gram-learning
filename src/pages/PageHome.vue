@@ -1,5 +1,25 @@
 <template>
   <q-page class="constrain q-pa-md">
+    <transition 
+      appear 
+      enter-active-class="animated fadeIn" 
+      leave-active-class="animated fadeOut">
+      <div class="banner-container bg-primary" v-if="showNotificationsBanner && pushNotificationsSupported">
+        <div class="constrain">
+          <q-banner class="bg-grey-3 q-mb-md">
+            <template v-slot:avatar>
+              <q-icon name="eva-bell-outline"  color="primary"/>
+            </template>
+            <b>Would you like to enable notifications ?</b>
+            <template v-slot:action>
+              <q-btn flat class="q-px-sm" color="primary" label="Yes" dense @click="enableNotifications"/>
+              <q-btn flat class="q-px-sm" color="primary" label="Later" dense @click="showNotificationsBanner = false"/>
+              <q-btn flat class="q-px-sm" color="primary" label="Never" dense @click="neverShowNotificationsBanner"/>
+            </template>
+          </q-banner>
+        </div>
+      </div>
+    </transition> 
     <div class="row q-col-gutter-lg">
       <div class="col-12 col-sm-8">
         <template 
@@ -110,11 +130,16 @@ export default {
     return {
       posts: [],
       loadingPosts: false,
+      showNotificationsBanner: false
     }
   },
   computed:{
     serviceWorkerSupported(){
       if('serviceWorker' in navigator) return true 
+      return false
+    },
+    pushNotificationsSupported(){
+      if('PushManager' in window) return true 
       return false
     }
   },
@@ -183,6 +208,69 @@ export default {
         })
       }
       
+    },
+    initNotificationsBanner(){
+      let neverShowNotificationsBanner = this.$q.localStorage.getItem('neverShowNotificationsBanner')
+
+      if(!neverShowNotificationsBanner)
+      {
+        this.showNotificationsBanner = true;
+      }
+    },
+    enableNotifications(){
+      if(this.pushNotificationsSupported){
+        Notification.requestPermission(result => {
+          this.neverShowNotificationsBanner()
+          if(result == 'granted'){
+            this.displayGrantedNotification()
+          }
+        })
+      }
+    },
+    displayGrantedNotification(){
+      // new Notification("You \'re subscribed to notifications!",{
+      //   body: 'Thanks for subscribing!',
+      //   icon: 'icons/icon-128x128.png',
+      //   image: 'icons/icon-128x128.png',
+      //   badge: 'icons/icon-128x128.png',
+      //   dir: 'ltr',
+      //   lang: 'en-US',
+      //   vibrate: [100,50,200],
+      //   tag: 'confirm-notification',
+      //   renotify: true,
+      // })
+
+      if(this.serviceWorkerSupported && this.pushNotificationsSupported){
+        navigator.serviceWorker.ready.then(swreg => {
+          swreg.showNotification("You \'re subscribed to notifications!",{
+            body: 'Thanks for subscribing!',
+            icon: 'icons/icon-128x128.png',
+            image: 'icons/icon-128x128.png',
+            badge: 'icons/icon-128x128.png',
+            dir: 'ltr',
+            lang: 'en-US',
+            vibrate: [100,50,200],
+            tag: 'confirm-notification',
+            renotify: true,
+            actions: [
+              {
+                action: 'hello',
+                title: 'Hello',
+                icon: 'icons/icon-128x128.png'
+              },
+              {
+                action: 'goodbye',
+                title: 'Goodbye',
+                icon: 'icons/icon-128x128.png'
+              },
+            ]
+          })
+        })
+      }
+    },
+    neverShowNotificationsBanner(){
+      this.showNotificationsBanner = false;
+      this.$q.localStorage.set('neverShowNotificationsBanner',true);
     }
   },
   filters: {
@@ -196,6 +284,7 @@ export default {
   created() {
     
     this.listenForOfflinePostUploaded()
+    this.initNotificationsBanner();
   }
 }
 </script>
