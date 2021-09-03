@@ -1,55 +1,83 @@
 <template>
   <q-page class="constrain q-pa-md">
-    <transition 
-      appear 
-      enter-active-class="animated fadeIn" 
-      leave-active-class="animated fadeOut">
-      <div class="banner-container bg-primary" v-if="showNotificationsBanner && pushNotificationsSupported">
+    <transition
+      appear
+      enter-active-class="animated fadeIn"
+      leave-active-class="animated fadeOut"
+    >
+      <div
+        v-if="showNotificationsBanner && pushNotificationsSupported"
+        class="banner-container bg-primary"
+      >
         <div class="constrain">
-          <q-banner class="bg-grey-3 q-mb-md">
+          <q-banner
+            class="bg-grey-3 q-mb-md"
+          >
             <template v-slot:avatar>
-              <q-icon name="eva-bell-outline"  color="primary"/>
+              <q-icon name="eva-bell-outline" color="primary" />
             </template>
-            <b>Would you like to enable notifications ?</b>
+
+            Would you like to enable notifications?
+
             <template v-slot:action>
-              <q-btn flat class="q-px-sm" color="primary" label="Yes" dense @click="enableNotifications"/>
-              <q-btn flat class="q-px-sm" color="primary" label="Later" dense @click="showNotificationsBanner = false"/>
-              <q-btn flat class="q-px-sm" color="primary" label="Never" dense @click="neverShowNotificationsBanner"/>
+              <q-btn
+                @click="enableNotifications"
+                label="Yes"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
+              <q-btn
+                @click="showNotificationsBanner = false"
+                label="Later"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
+              <q-btn
+                @click="neverShowNotificationsBanner"
+                label="Never"
+                color="primary"
+                class="q-px-sm"
+                dense
+                flat
+              />
             </template>
           </q-banner>
         </div>
       </div>
-    </transition> 
+    </transition>
     <div class="row q-col-gutter-lg">
       <div class="col-12 col-sm-8">
-        <template 
-          v-if="!loadingPosts && posts.length"
-        >
-          <q-card 
-            v-for="post in posts" 
+        <template v-if="!loadingPosts && posts.length">
+          <q-card
+            v-for="post in posts"
             :key="post.id"
-            class="card-post q-mb-md" 
-            :class="{ 'bg-red-1' : post.offline}"
-            flat 
-            bordered 
+            class="card-post q-mb-md"
+            :class="{ 'bg-red-1' : post.offline }"
+            bordered
+            flat
+          >
+            <q-badge
+              v-if="post.offline"
+              class="badge-offline absolute-top-right"
+              color="red"
             >
-            <q-badge 
-              v-if="post.offline" 
-              color="red" 
-              class="badge-offline absolute-top-right">
               Stored offline
             </q-badge>
             <q-item>
               <q-item-section avatar>
                 <q-avatar>
-                  <img src="https://cdn.quasar.dev/img/boy-avatar.png">
+                  <img src="https://s.gravatar.com/avatar/ce7f3697e231df38b3ca6065848520da?s=80">
                 </q-avatar>
               </q-item-section>
 
               <q-item-section>
-                <q-item-label class="text-bold">deny__connell</q-item-label>
+                <q-item-label class="text-bold">danny__connell</q-item-label>
                 <q-item-label caption>
-                  {{post.location}}
+                  {{ post.location }}
                 </q-item-label>
               </q-item-section>
             </q-item>
@@ -62,22 +90,19 @@
 
             <q-card-section>
               <div>{{ post.caption }}</div>
-              <div class="text-caption text-grey">{{ post.date|niceDate }}</div>
+              <div class="text-caption text-grey">{{ post.date | niceDate }}</div>
             </q-card-section>
+
           </q-card>
         </template>
-        <template
-          v-else-if="!loadingPosts && !posts.length"
-        >
+        <template v-else-if="!loadingPosts && !posts.length">
           <h5 class="text-center text-grey">No posts yet.</h5>
         </template>
-        <template
-          v-else
-        >
+        <template v-else>
           <q-card flat bordered>
             <q-item>
               <q-item-section avatar>
-                <q-skeleton type="QAvatar" animation="fade" style="40px" />
+                <q-skeleton type="QAvatar" animation="fade" size="40px" />
               </q-item-section>
 
               <q-item-section>
@@ -99,85 +124,81 @@
           </q-card>
         </template>
       </div>
+
       <div class="col-4 large-screen-only">
         <q-item class="fixed">
-            <q-item-section avatar>
-              <q-avatar size="48px">
-                <img src="https://cdn.quasar.dev/img/boy-avatar.png">
-              </q-avatar>
-            </q-item-section>
+          <q-item-section avatar>
+            <q-avatar size="48px">
+              <img src="https://s.gravatar.com/avatar/ce7f3697e231df38b3ca6065848520da?s=80">
+            </q-avatar>
+          </q-item-section>
 
-            <q-item-section>
-              <q-item-label class="text-bold">Bau</q-item-label>
-              <q-item-label caption>
-                bunnason
-              </q-item-label>
-            </q-item-section>
-          </q-item>
+          <q-item-section>
+            <q-item-label class="text-bold">danny__connell</q-item-label>
+            <q-item-label caption>
+              Danny Connell
+            </q-item-label>
+          </q-item-section>
+        </q-item>
       </div>
     </div>
-    
+
   </q-page>
 </template>
 
 <script>
-import {date} from 'quasar'
+import { date } from 'quasar'
 import { openDB } from 'idb'
+let qs = require('qs')
 
 export default {
-  name: 'PageIndex',
-  data(){
+  name: 'PageHome',
+  data() {
     return {
       posts: [],
       loadingPosts: false,
       showNotificationsBanner: false
     }
   },
-  computed:{
-    serviceWorkerSupported(){
-      if('serviceWorker' in navigator) return true 
+  computed: {
+    serviceWorkerSupported() {
+      if ('serviceWorker' in navigator) return true
       return false
     },
-    pushNotificationsSupported(){
-      if('PushManager' in window) return true 
+    pushNotificationsSupported() {
+      if ('PushManager' in window) return true
       return false
     }
   },
   methods: {
-    getPosts(){
-      this.loadingPosts = true;
-        this
-          .$axios
-          .get(`${process.env.API}/posts`)
-          .then(response => {
-            this.posts = response.data
-            this.loadingPosts = false;
-            if(!navigator.onLine){
-              this.getOffLinePosts()
-            }
-          })
-          .catch(err => {
-            this.$q.dialog({
-              title: 'Error',
-              message: 'Could not download post.'
-            })
-            this.loadingPosts = false;
-          })
-      
-      
+    getPosts() {
+      this.loadingPosts = true
+      this.$axios.get(`${ process.env.API }/posts`).then(response => {
+        this.posts = response.data
+        this.loadingPosts = false
+        if (!navigator.onLine) {
+          this.getOfflinePosts()
+        }
+      }).catch(err => {
+        this.$q.dialog({
+          title: 'Error',
+          message: 'Could not download posts.'
+        })
+        this.loadingPosts = false
+      })
     },
-    getOffLinePosts(){
+    getOfflinePosts() {
       let db = openDB('workbox-background-sync').then(db => {
         db.getAll('requests').then(failedRequests => {
           failedRequests.forEach(failedRequest => {
-            if(failedRequest.queueName = 'createPostQueue'){
-              let request = new Request(failedRequest.requestData.url,failedRequest.requestData)
+            if (failedRequest.queueName == 'createPostQueue') {
+              let request = new Request(failedRequest.requestData.url, failedRequest.requestData)
               request.formData().then(formData => {
                 let offlinePost = {}
                 offlinePost.id = formData.get('id')
                 offlinePost.caption = formData.get('caption')
                 offlinePost.location = formData.get('location')
-                offlinePost.date = formData.get('date')
+                offlinePost.date = parseInt(formData.get('date'))
                 offlinePost.offline = true
 
                 let reader = new FileReader()
@@ -190,66 +211,92 @@ export default {
             }
           })
         }).catch(err => {
-          console.log(err);
-        });
+          console.log('Error accessing IndexedDB: ', err)
+        })
       })
     },
-    listenForOfflinePostUploaded(){
-      console.log('listenForOfflinePostUploaded');
-
-      if(this.serviceWorkerSupported){
+    listenForOfflinePostUploaded() {
+      if (this.serviceWorkerSupported) {
         const channel = new BroadcastChannel('sw-messages');
-        channel.addEventListener('message',event => {
-          console.log('Received',event.data);
-          if(event.data.msg == 'offline-post-uploaded'){
-            let offlinePostCount = this.posts.filter(post => post.offline == true ).length
+        channel.addEventListener('message', event => {
+          console.log('Received', event.data);
+          if (event.data.msg == 'offline-post-uploaded') {
+            let offlinePostCount = this.posts.filter(post => post.offline == true).length
             this.posts[offlinePostCount - 1].offline = false
           }
-        })
+        });
       }
-      
     },
-    initNotificationsBanner(){
+    initNotificationsBanner() {
       let neverShowNotificationsBanner = this.$q.localStorage.getItem('neverShowNotificationsBanner')
 
-      if(!neverShowNotificationsBanner)
-      {
-        this.showNotificationsBanner = true;
+      if (!neverShowNotificationsBanner) {
+        this.showNotificationsBanner = true   
       }
     },
-    enableNotifications(){
-      if(this.pushNotificationsSupported){
+    enableNotifications() {
+      if (this.pushNotificationsSupported) {
         Notification.requestPermission(result => {
+          console.log('result: ', result)
           this.neverShowNotificationsBanner()
-          if(result == 'granted'){
-            this.displayGrantedNotification()
+          if (result == 'granted') {
+            // this.displayGrantedNotification()
+            this.checkForExistingPushSubscription()
           }
         })
       }
     },
-    displayGrantedNotification(){
-      // new Notification("You \'re subscribed to notifications!",{
+    checkForExistingPushSubscription() {
+      if (this.serviceWorkerSupported && this.pushNotificationsSupported) {
+        let reg
+        navigator.serviceWorker.ready.then(swreg => {
+          reg = swreg
+          return swreg.pushManager.getSubscription()
+        }).then(sub => {
+          if (!sub) {
+            this.createPushSubscription(reg)
+          }
+        })
+      }
+    },
+    createPushSubscription(reg) {
+      let vapidPublicKey = 'BE78C5EzQPgBH8JX1X8XnHx7D7KMeb_9e9CfaQ-QZRIHEka05URgWu5qs2FW1QSWOpWbU94Pi99alchiaLdbiLs'
+      let vapidPublicKeyConverted = this.urlBase64ToUint8Array(vapidPublicKey)
+      reg.pushManager.subscribe({
+        applicationServerKey: vapidPublicKeyConverted,
+        userVisibleOnly: true
+      }).then(newSub => {
+        let newSubData = newSub.toJSON(),
+            newSubDataQS = qs.stringify(newSubData)
+        return this.$axios.post(`${ process.env.API }/createSubscription?${ newSubDataQS }`)
+      }).then(response => {
+        this.displayGrantedNotification()
+      }).catch(err => {
+        console.log('err: ', err)
+      })
+    },
+    displayGrantedNotification() {
+      // new Notification("You're subscribed to notifications!", {
       //   body: 'Thanks for subscribing!',
       //   icon: 'icons/icon-128x128.png',
       //   image: 'icons/icon-128x128.png',
       //   badge: 'icons/icon-128x128.png',
       //   dir: 'ltr',
       //   lang: 'en-US',
-      //   vibrate: [100,50,200],
+      //   vibrate: [100, 50, 200],
       //   tag: 'confirm-notification',
-      //   renotify: true,
+      //   renotify: true
       // })
-
-      if(this.serviceWorkerSupported && this.pushNotificationsSupported){
+      if (this.serviceWorkerSupported && this.pushNotificationsSupported) {
         navigator.serviceWorker.ready.then(swreg => {
-          swreg.showNotification("You \'re subscribed to notifications!",{
+          swreg.showNotification("You're subscribed to notifications!", {
             body: 'Thanks for subscribing!',
             icon: 'icons/icon-128x128.png',
             image: 'icons/icon-128x128.png',
             badge: 'icons/icon-128x128.png',
             dir: 'ltr',
             lang: 'en-US',
-            vibrate: [100,50,200],
+            vibrate: [100, 50, 200],
             tag: 'confirm-notification',
             renotify: true,
             actions: [
@@ -262,29 +309,43 @@ export default {
                 action: 'goodbye',
                 title: 'Goodbye',
                 icon: 'icons/icon-128x128.png'
-              },
+              }
             ]
           })
         })
       }
     },
-    neverShowNotificationsBanner(){
-      this.showNotificationsBanner = false;
-      this.$q.localStorage.set('neverShowNotificationsBanner',true);
+    neverShowNotificationsBanner() {
+      this.showNotificationsBanner = false
+      this.$q.localStorage.set('neverShowNotificationsBanner', true)
+    },
+    urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+      const rawData = window.atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
     }
   },
   filters: {
-    niceDate(value){
-      return date.formatDate(value,'MMMM D h:mmA')
+    niceDate(value) {
+      return date.formatDate(value, 'MMMM D h:mmA')
     }
   },
-  activated(){
+  activated() {
+    console.log('activated')
     this.getPosts()
   },
   created() {
-    
     this.listenForOfflinePostUploaded()
-    this.initNotificationsBanner();
+    this.initNotificationsBanner()
   }
 }
 </script>

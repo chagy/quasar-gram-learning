@@ -4,84 +4,87 @@
       <video 
         v-show="!imageCaptured"
         ref="video"
-        class="full-width" 
+        class="full-width"
         autoplay
       />
-      <canvas 
+      <canvas
         v-show="imageCaptured"
-        ref="canvas" 
-        class="full-width" 
-        height="240" 
-
+        ref="canvas"
+        class="full-width"
+        height="240"
       />
     </div>
     <div class="text-center q-pa-md">
-      <q-btn 
+      <q-btn
         v-if="hasCameraSupport"
-        @click="captureImage" 
+        @click="captureImage"
         :disable="imageCaptured"
-        color="grey-10" 
+        color="grey-10"
         icon="eva-camera"
-        size="lg" 
+        size="lg"
         round
       />
-      <q-file 
-        v-else 
-        outlined 
+      <q-file
+        v-else
+        v-model="imageUpload"
         @input="captureImageFallback"
-        v-model="imageUpload" 
-        label="Choose an image" 
-        accept="image/*">
+        label="Choose an image"
+        accept="image/*"
+        outlined
+      >
         <template v-slot:prepend>
           <q-icon name="eva-attach-outline" />
         </template>
       </q-file>
       <div class="row justify-center q-ma-md">
-        <q-input 
-          v-model="post.caption" 
-          label="Caption" 
-          class="col col-sm-6" 
-          dense/>
+        <q-input
+          v-model="post.caption"
+          class="col col-sm-6"
+          label="Caption *"
+          dense
+        />
       </div>
       <div class="row justify-center q-ma-md">
-        <q-input 
-          v-model="post.location" 
+        <q-input
+          v-model="post.location"
           :loading="locationLoading"
-          label="Location" 
-          class="col col-sm-6" 
-          dense>
+          class="col col-sm-6"
+          label="Location"
+          dense
+        >
           <template v-slot:append>
-            <q-btn 
+            <q-btn
               v-if="!locationLoading && locationSupported"
               @click="getLocation"
-              round 
-              dense 
-              flat 
-              icon="eva-navigation-2-outline" />
+              icon="eva-navigation-2-outline"
+              dense
+              flat
+              round
+            />
           </template>
         </q-input>
       </div>
       <div class="row justify-center q-mt-lg">
-        <q-btn 
-          @click="addPost" 
+        <q-btn
+          @click="addPost()"
           :disable="!post.caption || !post.photo"
-          color="primary" 
-          label="Post Image" 
-          rounded 
-          unelevated />
+          color="primary"
+          label="Post Image"
+          rounded
+          unelevated
+        />
       </div>
     </div>
   </q-page>
 </template>
 
 <script>
-import {uid} from 'quasar'
-
+import { uid } from 'quasar'
 require('md-gum-polyfill')
 
 export default {
   name: 'PageCamera',
-  data(){
+  data() {
     return {
       post: {
         id: uid(),
@@ -93,67 +96,62 @@ export default {
       imageCaptured: false,
       imageUpload: [],
       hasCameraSupport: true,
-      locationLoading: false,
+      locationLoading: false
     }
   },
-  computed:{
-    locationSupported(){
-      if('geolocation' in navigator) return true 
-
+  computed: {
+    locationSupported() {
+      if ('geolocation' in navigator) return true
       return false
     },
-    backgroundSyncSupported(){
-      if('serviceWorker' in navigator && 'SyncManager' in window) return true 
-
-      return false;
+    backgroundSyncSupported() {
+      if ('serviceWorker' in navigator && 'SyncManager' in window) return true
+      return false
     }
   },
   methods: {
-    initCamera(){
+    initCamera() {
       navigator.mediaDevices.getUserMedia({
-        video:true
+        video: true
       }).then(stream => {
         this.$refs.video.srcObject = stream
       }).catch(error => {
         this.hasCameraSupport = false
       })
     },
-    captureImage(){
+    captureImage() {
       let video = this.$refs.video
       let canvas = this.$refs.canvas
-
       canvas.width = video.getBoundingClientRect().width
       canvas.height = video.getBoundingClientRect().height
-
-      let context = canvas.getContext('2d');
-      context.drawImage(video,0,0,canvas.width,canvas.height)
+      let context = canvas.getContext('2d')
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
       this.imageCaptured = true
-
       this.post.photo = this.dataURItoBlob(canvas.toDataURL())
-      this.disableCamera();
+      this.disableCamera()
     },
-    captureImageFallback(file){
+    captureImageFallback(file) {
       this.post.photo = file
 
       let canvas = this.$refs.canvas
-      let context = canvas.getContext('2d');
+      let context = canvas.getContext('2d')
 
-      var reader = new FileReader();
-      reader.onload = (event) => {
-          var img = new Image();
-          img.onload = () => {
-              canvas.width = img.width
-              canvas.height = img.height
-              context.drawImage(img,0,0)
-              this.imageCaptured = true
-          }
-          img.src = event.target.result
+      var reader = new FileReader()
+      reader.onload = event => {
+        var img = new Image()
+        img.onload = () => {
+          canvas.width = img.width
+          canvas.height = img.height
+          context.drawImage(img,0,0)
+          this.imageCaptured = true
+        }
+        img.src = event.target.result
       }
-      reader.readAsDataURL(file)     
+      reader.readAsDataURL(file)
     },
-    disableCamera(){
+    disableCamera() {
       this.$refs.video.srcObject.getVideoTracks().forEach(track => {
-        track.stop();
+        track.stop()
       })
     },
     dataURItoBlob(dataURI) {
@@ -180,92 +178,85 @@ export default {
       return blob;
 
     },
-    getLocation(){
+    getLocation() {
       this.locationLoading = true
       navigator.geolocation.getCurrentPosition(position => {
         this.getCityAndCountry(position)
-      },err => {
+      }, err => {
         this.locationError()
-      },{ timeout: 7000 })
+      }, { timeout: 7000 })
     },
-    getCityAndCountry(position){
-      let apiUrl = `https://geocode.xyz/${position.coords.latitude},${position.coords.longitude}?json=1`
+    getCityAndCountry(position) {
+      let apiUrl = `https://geocode.xyz/${ position.coords.latitude },${ position.coords.longitude }?json=1`
       this.$axios.get(apiUrl).then(result => {
         this.locationSuccess(result)
       }).catch(err => {
         this.locationError()
       })
     },
-    locationSuccess(result){
+    locationSuccess(result) {
       this.post.location = result.data.city
-      if(result.data.country){
-        this.post.location += `, ${result.data.country}`
+      if (result.data.country) {
+        this.post.location += `, ${ result.data.country }`
       }
       this.locationLoading = false
     },
-    locationError(){
+    locationError() {
       this.$q.dialog({
         title: 'Error',
         message: 'Could not find your location.'
       })
       this.locationLoading = false
     },
-    addPost(){
-      this.$q.loading.show();
+    addPost() {
+      this.$q.loading.show()
 
       let formData = new FormData()
-      formData.append('id', this.post.id);
-      formData.append('caption', this.post.caption);
-      formData.append('location', this.post.location);
-      formData.append('date', this.post.date);
-      formData.append('file', this.post.photo, this.post.id+'.png');
+      formData.append('id', this.post.id)
+      formData.append('caption', this.post.caption)
+      formData.append('location', this.post.location)
+      formData.append('date', this.post.date)
+      formData.append('file', this.post.photo, this.post.id + '.png')
 
-      this
-        .$axios
-        .post(`${process.env.API}/createPost`,formData)
-        .then(response => {
-          console.log(response);
+      this.$axios.post(`${ process.env.API }/createPost`, formData).then(response => {
+        console.log('response: ', response)
+        this.$router.push('/')
+        this.$q.notify({
+          message: 'Post created!',
+          actions: [
+            { label: 'Dismiss', color: 'white' }
+          ]
+        })
+        this.$q.loading.hide()
+      }).catch(err => {
+        console.log('err: ', err)
+        if (!navigator.onLine && this.backgroundSyncSupported) {
+          this.$q.notify('Post created offline')
           this.$router.push('/')
-          this.$q.notify({
-            message: 'Post created!',
-            actions: [
-              {
-                label: 'Dismiss',
-                color: 'white'
-              }
-            ]
+        }
+        else {
+          this.$q.dialog({
+            title: 'Error',
+            message: 'Sorry, could not create post!'
           })
-          this.$q.loading.hide();
-        })
-        .catch(err => {
-          if(!navigator.onLine && this.backgroundSyncSupported){
-            this.$q.notify('Post created offline')
-            this.$router.push('/')
-          }
-          else{
-            this.$q.dialog({
-              title: 'Error',
-              message: 'Sorry,could not create post!'
-            })
-          }
-          
-          this.$q.loading.hide();
-        })
+        }
+        this.$q.loading.hide()
+      })
     }
   },
-  mounted(){
-    this.initCamera();
+  mounted() {
+    this.initCamera()
   },
-  beforeDestroy(){
-    if(this.hasCameraSupport){
-      this.disableCamera();
+  beforeDestroy() {
+    if (this.hasCameraSupport) {
+      this.disableCamera()
     }
   }
 }
 </script>
 
 <style lang="sass">
-  .camera-frame 
+  .camera-frame
     border: 2px solid $grey-10
     border-radius: 10px
 </style>

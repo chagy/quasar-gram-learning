@@ -1,64 +1,110 @@
 <template>
   <q-layout view="lHh Lpr lFf">
     <q-header
-      class="bg-white text-grey-10" 
+      class="bg-white text-grey-10"
       bordered
     >
       <q-toolbar class="constrain">
-        <q-btn 
-          to="/camera" 
+        <q-btn
+          to="/camera"
           class="large-screen-only q-mr-sm"
-          icon="eva-camera-outline" 
-          size="18px" 
-          flat 
-          round 
-          dense />
-        <q-separator class="large-screen-only" vertical spaced />
-        <q-toolbar-title class="text-grand-hotal text-bold">
-          Quasargram
-        </q-toolbar-title>
-        <q-btn 
-          to="/" 
+          icon="eva-camera-outline"
+          size="18px"
+          flat
+          round
+          dense
+        />
+        <q-separator
           class="large-screen-only"
-          icon="eva-home-outline" 
-          size="18px" 
-          flat 
-          round 
-          dense />
+          vertical
+          spaced
+        />
+        <q-toolbar-title class="text-grand-hotel text-bold">
+          Quasagram
+        </q-toolbar-title>
+        <q-btn
+          to="/"
+          class="large-screen-only"
+          icon="eva-home-outline"
+          size="18px"
+          flat
+          round
+          dense
+        />
       </q-toolbar>
     </q-header>
 
-    <q-footer 
-    class="bg-white" 
-    bordered>
-      <transition 
-        appear 
-        enter-active-class="animated fadeIn" 
-        leave-active-class="animated fadeOut">
-        <div class="banner-container bg-primary" v-if="showAppInstallBanner">
+    <q-footer
+      class="bg-white"
+      bordered
+    >
+      <transition
+        appear
+        enter-active-class="animated fadeIn"
+        leave-active-class="animated fadeOut"
+      >
+        <div
+          v-if="showAppInstallBanner"
+          class="banner-container bg-primary"
+        >
           <div class="constrain">
-            <q-banner inline-actions class="bg-primary text-while" dense>
+            <q-banner
+              class="bg-primary text-white"
+              inline-actions
+              dense
+            >
               <template v-slot:avatar>
-
-                <q-avatar 
-                  icon="eva-camera-outline" 
-                  text-color="grey-10" 
-                  color="white" 
-                  font-size="22px"/>
+                <q-avatar
+                  color="white"
+                  icon="eva-camera-outline"
+                  text-color="grey-10"
+                  font-size="22px"
+                />
               </template>
-              <b>Install Quasargram?</b>
+
+              <b>Install Quasagram?</b>
+
               <template v-slot:action>
-                <q-btn flat class="q-px-sm" label="Yes" dense @click="installApp"/>
-                <q-btn flat class="q-px-sm" label="Later" dense/>
-                <q-btn flat class="q-px-sm" label="Never" dense @click="neverShowAppInstallBanner"/>
+                <q-btn
+                  @click="installApp"
+                  label="Yes"
+                  class="q-px-sm"
+                  dense
+                  flat
+                />
+                <q-btn
+                  @click="showAppInstallBanner = false"
+                  label="Later"
+                  class="q-px-sm"
+                  dense
+                  flat
+                />
+                <q-btn
+                  @click="neverShowAppInstallBanner"
+                  label="Never"
+                  class="q-px-sm"
+                  dense
+                  flat
+                />
               </template>
             </q-banner>
           </div>
         </div>
-      </transition> 
-      <q-tabs class="text-grey-10 small-screen-only" active-color="primary" indicator-color="transparent">
-        <q-route-tab to="/" icon="eva-home-outline" @click="showAppInstallBanner=false"/>
-        <q-route-tab to="/camera" icon="eva-camera-outline" />
+      </transition>
+
+      <q-tabs
+        class="text-grey-10 small-screen-only"
+        active-color="primary"
+        indicator-color="transparent"
+      >
+        <q-route-tab
+          to="/"
+          icon="eva-home-outline"
+        />
+        <q-route-tab
+          to="/camera"
+          icon="eva-camera-outline"
+        />
       </q-tabs>
     </q-footer>
 
@@ -75,51 +121,55 @@ let deferredPrompt;
 
 export default {
   name: 'MainLayout',
+
   data () {
     return {
       showAppInstallBanner: false
     }
   },
-  methods:{
-    installApp(){
-      this.showAppInstallBanner = false;
-
+  methods: {
+    installApp() {
+      // Hide the app provided install promotion
+      this.showAppInstallBanner = false
+      // Show the install prompt
       deferredPrompt.prompt();
-
+      // Wait for the user to respond to the prompt
       deferredPrompt.userChoice.then((choiceResult) => {
-        if(choiceResult.outcome === 'accepted'){
-          this.neverShowAppInstallBanner();
-        }else{
-
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+          this.neverShowAppInstallBanner()
+        } else {
+          console.log('User dismissed the install prompt');
         }
-      })
+      });
     },
-    neverShowAppInstallBanner(){
-      this.showAppInstallBanner = false;
-      this.$q.localStorage.set('neverShowAppInstallBanner',true);
+    neverShowAppInstallBanner() {
+      this.showAppInstallBanner = false
+      this.$q.localStorage.set('neverShowAppInstallBanner', true)
     }
   },
-  mounted(){
+  mounted() {
     let neverShowAppInstallBanner = this.$q.localStorage.getItem('neverShowAppInstallBanner')
 
-    if(!neverShowAppInstallBanner)
-    {
-      window.addEventListener('beforeinstallprompt',(e) => {
+    if (!neverShowAppInstallBanner) {
+      window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
         e.preventDefault();
+        // Stash the event so it can be triggered later.
         deferredPrompt = e;
+        // Update UI notify the user they can install the PWA
         setTimeout(() => {
-          this.showAppInstallBanner = true;
-        },3000)
-        
-      })
+          this.showAppInstallBanner = true
+        }, 3000);
+      });    
     }
-    
   }
+
 }
 </script>
 
 <style lang="sass">
-  .q-toolbar 
+  .q-toolbar
     @media (min-width: $breakpoint-sm-min)
       height: 77px
   .q-toolbar__title
@@ -129,5 +179,4 @@ export default {
   .q-footer
     .q-tab__icon
       font-size: 30px
-
 </style>
