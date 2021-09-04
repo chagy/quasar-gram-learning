@@ -202,9 +202,13 @@ export default {
       this.locationLoading = false
     },
     locationError() {
+      let locationErrorMessage = 'Could not find your location.'
+      if(this.$q.platform.is.mac){
+        locationErrorMessage = 'You might be able to fix this in System'
+      }
       this.$q.dialog({
         title: 'Error',
-        message: 'Could not find your location.'
+        message: locationErrorMessage
       })
       this.locationLoading = false
     },
@@ -228,6 +232,11 @@ export default {
           ]
         })
         this.$q.loading.hide()
+        if(this.$q.platform.is.safari){
+          setTimeout(() => {
+            window.location.href = '/'
+          },1000);
+        }
       }).catch(err => {
         console.log('err: ', err)
         if (!navigator.onLine && this.backgroundSyncSupported) {
